@@ -3,9 +3,12 @@
 // Mengimpor tipe SortingAlgorithmType dari file types.ts
 import { SortingAlgorithmType } from "@/lib/types";
 // Mengimpor konstanta MAX_ANIMATION_SPEED dari file utils.ts
-import { MAX_ANIMATION_SPEED } from "@/lib/utils";
+import {
+  MAX_ANIMATION_SPEED,
+  generateRandomNumberFromInterval,
+} from "@/lib/utils";
 // Mengimpor createContext, useContext, dan useState dari React
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 // Mendefinisikan tipe SortingAlgorithmContextType untuk konteks algoritma pengurutan
 interface SortingAlgorithmContextType {
@@ -35,7 +38,7 @@ export const SortingAlgorithmProvider = ({
   children: React.ReactNode;
 }) => {
   // State-state untuk menyimpan nilai-nilai konteks algoritma pengurutan
-  const [arrayToSort, setArrayToSort] = useState<number[]>([100, 300, 75, 250]);
+  const [arrayToSort, setArrayToSort] = useState<number[]>([]);
   const [selectedAlgorithm, setSelectedAlgorithm] =
     useState<SortingAlgorithmType>("bubble");
   const [isSorting, setIsSorting] = useState<boolean>(false);
@@ -44,8 +47,37 @@ export const SortingAlgorithmProvider = ({
   const [isAnimationComplete, setIsAnimationComplete] =
     useState<boolean>(false);
 
+  // Gunakan useEffect untuk menjalankan fungsi resetArrayAndAnimation saat komponen dimount
+  useEffect(() => {
+    resetArrayAndAnimation();
+    window.addEventListener("resize", resetArrayAndAnimation);
+
+    // Membersihkan event listener saat komponen unmount
+    return () => {
+      window.removeEventListener("resize", resetArrayAndAnimation);
+    };
+  }, []);
+
   // Fungsi untuk mereset array dan animasi pengurutan
-  const resetArrayAndAnimation = () => {};
+  const resetArrayAndAnimation = () => {
+    const contentContainer = document.getElementById("content-container");
+    if (!contentContainer) return;
+
+    // Menghitung ulang ukuran array berdasarkan ukuran container
+    const contentContainerWidth = contentContainer.clientWidth;
+    const tempArray: number[] = [];
+    const numLines = contentContainerWidth / 8;
+    const containerHeight = window.innerHeight;
+    const maxLineHeight = Math.max(containerHeight - 420, 100);
+    for (let i = 0; i < numLines; i++) {
+      tempArray.push(generateRandomNumberFromInterval(35, maxLineHeight));
+    }
+
+    // Menetapkan nilai arrayToSort dengan array yang baru
+    setArrayToSort(tempArray);
+    setIsAnimationComplete(false);
+    setIsSorting(false);
+  };
   // Fungsi untuk menjalankan animasi pengurutan
   const runAnimation = () => {};
 
