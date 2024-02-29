@@ -1,19 +1,30 @@
 "use client";
 
 import { Slider } from "@/components/input/Slider";
+import Select from "@/components/input/select";
 import { useSortingAlgorithmContext } from "@/context/Visualizer"; // Mengimpor hook useSortingAlgorithmContext dari konteks Visualizer
+import { SortingAlgorithmType } from "@/lib/types";
+import { algorithmOptions } from "@/lib/utils";
 import { useEffect } from "react"; // Mendapatkan nilai arrayToSort dan isSorting dari konteks Visualizer
 
 export default function Home() {
-  const { arrayToSort, isSorting, animationSpeed, setAnimationSpeed } =
-    useSortingAlgorithmContext();
+  const {
+    arrayToSort,
+    isSorting,
+    animationSpeed,
+    setAnimationSpeed,
+    setSelectedAlgorithm,
+    selectedAlgorithm,
+  } = useSortingAlgorithmContext();
 
   // Efek samping yang digunakan untuk mencetak nilai arrayToSort dan isSorting ke konsol setiap kali komponen dirender
   useEffect(() => {
-    console.log("array to sort value : ", arrayToSort);
-    console.log("isSorting value : ", isSorting);
-    console.log("animationSpeed value : ", animationSpeed);
-  });
+    console.log("selected algorithm value : ", selectedAlgorithm);
+  }, [selectedAlgorithm]);
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAlgorithm(e.target.value as SortingAlgorithmType);
+  };
   return (
     <main className="absolute top-0 h-screen w-screen z-[-2] bg-[#000000] bg-[radial-gradient(#ffffff33_1px,#150229_1px)] bg-[size:40px_40px]">
       <div className="flex h-full justify-center">
@@ -30,6 +41,12 @@ export default function Home() {
                 isDisabled={isSorting}
                 value={animationSpeed}
                 handleChange={(e) => setAnimationSpeed(Number(e.target.value))}
+              />
+              <Select
+                options={algorithmOptions}
+                defaultValue={selectedAlgorithm}
+                onChange={handleSelectChange}
+                isDisabled={isSorting}
               />
             </div>
           </div>
