@@ -35,7 +35,7 @@ export const SortingAlgorithmProvider = ({
   children: React.ReactNode;
 }) => {
   // State-state untuk menyimpan nilai-nilai konteks algoritma pengurutan
-  const [arrayToSort, setArrayToSort] = useState<number[]>([]);
+  const [arrayToSort, setArrayToSort] = useState<number[]>([100, 300, 75, 250]);
   const [selectedAlgorithm, setSelectedAlgorithm] =
     useState<SortingAlgorithmType>("bubble");
   const [isSorting, setIsSorting] = useState<boolean>(false);
