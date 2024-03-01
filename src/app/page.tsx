@@ -1,83 +1,137 @@
 "use client";
 
-import Select from "@/components/input/Select";
+// Mengimpor komponen input Select dan Slider dari direktori components/input
+import { Select } from "@/components/input/Select";
 import { Slider } from "@/components/input/Slider";
-import { useSortingAlgorithmContext } from "@/context/Visualizer"; // Mengimpor hook useSortingAlgorithmContext dari konteks Visualizer
+// Mengimpor hook useSortingAlgorithmContext dari konteks Visualizer
+import { useSortingAlgorithmContext } from "@/context/Visualizer";
+// Mengimpor tipe SortingAlgorithmType dari file types.ts
 import { SortingAlgorithmType } from "@/lib/types";
-import { algorithmOptions } from "@/lib/utils";
-import { useEffect } from "react"; // Mendapatkan nilai arrayToSort dan isSorting dari konteks Visualizer
+// Mengimpor beberapa fungsi dan objek utilitas dari file utils.ts
+import {
+  algorithmOptions,
+  generateAnimationArray,
+  sortingAlgorithmsData,
+} from "@/lib/utils";
+// Mengimpor icon FaPlayCircle dari React Icons
 import { FaPlayCircle } from "react-icons/fa";
 import { RxReset } from "react-icons/rx";
 
+// Komponen Home adalah komponen utama untuk halaman visualisasi pengurutan
 export default function Home() {
+  // Menggunakan hook useSortingAlgorithmContext untuk mengakses konteks algoritma pengurutan
   const {
-    arrayToSort, // Array yang akan diurutkan
-    isSorting, // Status apakah sedang dilakukan proses pengurutan
-    animationSpeed, // Kecepatan animasi pengurutan
-    setAnimationSpeed, // Fungsi untuk menetapkan kecepatan animasi pengurutan
-    setSelectedAlgorithm, // Fungsi untuk menetapkan algoritma pengurutan yang dipilih
-    selectedAlgorithm, // Algoritma pengurutan yang dipilih
-    requireReset, // Status apakah memerlukan reset array dan animasi pengurutan
+    arrayToSort,
+    isSorting,
+    setAnimationSpeed,
+    animationSpeed,
+    selectedAlgorithm,
+    setSelectedAlgorithm,
+    requiresReset,
     resetArrayAndAnimation,
+    runAnimation,
   } = useSortingAlgorithmContext();
 
-  const handlePlay = () => {
-    if (requireReset) {
-      resetArrayAndAnimation();
-      return;
-    }
-    // generate animation array
-  };
-  // Fungsi untuk menangani perubahan pilihan algoritma pengurutan pada Select
+  // Fungsi handleSelectChange untuk menangani perubahan pilihan algoritma pengurutan pada dropdown
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedAlgorithm(e.target.value as SortingAlgorithmType);
   };
+
+  // Fungsi handlePlay untuk menangani klik tombol play/pause
+  const handlePlay = () => {
+    if (requiresReset) {
+      resetArrayAndAnimation(); // Jika perlu mereset, jalankan fungsi resetArrayAndAnimation
+      return;
+    }
+
+    generateAnimationArray(
+      selectedAlgorithm,
+      isSorting,
+      arrayToSort,
+      runAnimation
+    ); // Jika tidak perlu mereset, jalankan fungsi generateAnimationArray
+  };
+
+  // Mengembalikan tampilan halaman visualisasi pengurutan
   return (
-    // Komponen utama yang menyimpan konten halaman
     <main className="absolute top-0 h-screen w-screen z-[-2] bg-[#000000] bg-[radial-gradient(#ffffff33_1px,#150229_1px)] bg-[size:40px_40px]">
       <div className="flex h-full justify-center">
         <div
           id="content-container"
           className="flex max-w-[1020px] w-full flex-col lg:px-0 px-4">
-          {/* controls */}
-          {/* Kontrol untuk pengaturan animasi */}
           <div className="h-[66px] relative flex items-center justify-between w-full">
+            {/* Judul halaman */}
             <h1 className="text-gray-300 text-2xl font-light hidden md:flex">
-              Sorting Visualizer
+              Sorting Visulizer
             </h1>
-            {/* Slider untuk mengatur kecepatan animasi */}
+            {/* Bagian kontrol algoritma pengurutan */}
             <div className="flex items-center justify-center gap-4">
               <Slider
                 isDisabled={isSorting}
                 value={animationSpeed}
                 handleChange={(e) => setAnimationSpeed(Number(e.target.value))}
               />
-              {/* Select untuk memilih algoritma pengurutan */}
               <Select
                 options={algorithmOptions}
                 defaultValue={selectedAlgorithm}
                 onChange={handleSelectChange}
                 isDisabled={isSorting}
               />
-              {/* Tombol untuk memulai ulang atau menjalankan animasi */}
+              {/* Tombol play/pause */}
               <button
                 className="flex items-center justify-center"
-                onClick={() => {}}>
-                {/* Menampilkan ikon RxReset jika memerlukan reset, dan ikon FaPlayCircle jika tidak */}
-                {requireReset ? (
+                onClick={handlePlay}>
+                {requiresReset ? (
                   <RxReset className="text-gray-400 h-8 w-8" />
                 ) : (
                   <FaPlayCircle className="text-system-green60 h-8 w-8" />
                 )}
               </button>
             </div>
-          </div>
 
-          {/* Container untuk array yang akan diurutkan */}
+            {/* Informasi tentang algoritma pengurutan */}
+            <div className="hidden sm:flex absolute top-[120%] left-0 w-full">
+              <div className="flex w-full text-gray-400 p-4 rounded border border-system-purple20 bg-system-purple80 bg-opacity-10 gap-6">
+                {/* Judul dan deskripsi algoritma pengurutan */}
+                <div className="flex flex-col items-start justify-start w-3/4">
+                  <h3 className="text-lg">
+                    {sortingAlgorithmsData[selectedAlgorithm].title}
+                  </h3>
+                  <p className="text-sm text-grey-500 pt-2">
+                    {sortingAlgorithmsData[selectedAlgorithm].description}
+                  </p>
+                </div>
+
+                {/* Informasi kompleksitas waktu algoritma pengurutan */}
+                <div className="flex flex-col items-start justify-start w-1/4 gap-2">
+                  <h3 className="text-lg">Time Complexity</h3>
+                  <div className="flex flex-col gap-2">
+                    <p className="flex w-full text-sm text-gray-500">
+                      <span className="w-28">Worst Case:</span>
+                      <span>
+                        {sortingAlgorithmsData[selectedAlgorithm].worstCase}
+                      </span>
+                    </p>
+                    <p className="flex w-full text-sm text-gray-500">
+                      <span className="w-28">Average Case:</span>
+                      <span>
+                        {sortingAlgorithmsData[selectedAlgorithm].averageCase}
+                      </span>
+                    </p>
+                    <p className="flex w-full text-sm text-gray-500">
+                      <span className="w-28">Best Case:</span>
+                      <span>
+                        {sortingAlgorithmsData[selectedAlgorithm].bestCase}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Container untuk menampilkan array yang akan diurutkan */}
           <div className="relative h-[calc(100vh-66px)] w-full">
-            {/* Container untuk merepresentasikan array dalam bentuk garis */}
             <div className="absolute bottom-[32px] w-full mx-auto left-0 right-0 flex justify-center items-end">
-              {/* Menampilkan setiap elemen array sebagai garis dengan ketinggian yang sesuai */}
               {arrayToSort.map((value, index) => (
                 <div
                   key={index}
@@ -89,5 +143,5 @@ export default function Home() {
         </div>
       </div>
     </main>
-  ); // Mengembalikan elemen div sebagai konten halaman utama
+  );
 }
