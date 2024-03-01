@@ -1,7 +1,7 @@
 "use client";
 
 // Mengimpor tipe SortingAlgorithmType dari file types.ts
-import { SortingAlgorithmType } from "@/lib/types";
+import { AnimationArrayType, SortingAlgorithmType } from "@/lib/types";
 // Mengimpor konstanta MAX_ANIMATION_SPEED dari file utils.ts
 import {
   MAX_ANIMATION_SPEED,
@@ -23,7 +23,8 @@ interface SortingAlgorithmContextType {
   isAnimationComplete: boolean; // Status apakah animasi pengurutan telah selesai
   setIsAnimationComplete: (isAnimationComplete: boolean) => void; // Fungsi untuk menetapkan status animasi pengurutan
   resetArrayAndAnimation: () => void; // Fungsi untuk mereset array dan animasi pengurutan
-  runAnimation: () => void; // Fungsi untuk menjalankan animasi pengurutan
+  runAnimation: (animation: AnimationArrayType) => void; // Fungsi untuk menjalankan animasi pengurutan
+  requireReset: boolean;
 }
 
 // Membuat konteks sortingAlgorithmContext dengan tipe SortingAlgorithmContextType
@@ -46,6 +47,8 @@ export const SortingAlgorithmProvider = ({
     useState<number>(MAX_ANIMATION_SPEED);
   const [isAnimationComplete, setIsAnimationComplete] =
     useState<boolean>(false);
+
+  const requireReset = isAnimationComplete || isSorting;
 
   // Gunakan useEffect untuk menjalankan fungsi resetArrayAndAnimation saat komponen dimount
   useEffect(() => {
@@ -79,7 +82,61 @@ export const SortingAlgorithmProvider = ({
     setIsSorting(false);
   };
   // Fungsi untuk menjalankan animasi pengurutan
-  const runAnimation = () => {};
+  const runAnimation = (animations: AnimationArrayType) => {
+    // Menetapkan status sedang melakukan pengurutan
+    setIsSorting(true);
+
+    // Menghitung kecepatan invers dari animasi berdasarkan animationSpeed
+    const inverseSpeed = (1 / animationSpeed) * 200;
+    // Mengambil semua elemen dengan kelas "array-line" sebagai array
+    const arrayLines = document.getElementsByClassName(
+      "array-line"
+    ) as HTMLCollectionOf<HTMLElement>;
+
+    // Fungsi untuk memperbarui kelas CSS pada elemen array berdasarkan indeksnya
+    const updateClassList = (
+      indexes: number[],
+      addClassName: string,
+      removeClassName: string
+    ) => {
+      indexes.forEach((index) => {
+        arrayLines[index].classList.add(addClassName);
+        arrayLines[index].classList.remove(removeClassName);
+      });
+    };
+
+    // Fungsi untuk memperbarui tinggi (height) elemen array berdasarkan indeksnya
+    const updateheightValue = (
+      lineIndex: number,
+      newHeight: number | undefined
+    ) => {
+      if (newHeight === undefined) return;
+      arrayLines[newHeight].style.height = `${newHeight}px`;
+    };
+
+    // Iterasi melalui setiap animasi dalam array animations
+    animations.forEach((animation, index) => {
+      // Menjalankan setiap animasi dengan delay berdasarkan kecepatan invers
+      setTimeout(() => {
+        // Mendapatkan nilai animasi dan apakah itu pertukaran (swap) atau tidak
+        const [values, isSwap] = animation;
+
+        // Jika bukan pertukaran (swap)
+        if (!isSwap) {
+          // Memperbarui kelas CSS untuk memberikan efek visual perubahan warna
+          updateClassList(values, "change-line-color", "default-line-color");
+          // Setelah beberapa waktu, kembalikan kelas CSS ke keadaan awal
+          setTimeout(() => {
+            updateClassList(values, "default-line-color", "change-line-color");
+          }, inverseSpeed);
+        } else {
+          // Jika pertukaran (swap), update tinggi (height) dari baris array
+          const [lineIndex, newHeight] = values;
+          updateheightValue(lineIndex, newHeight);
+        }
+      }, index * inverseSpeed); // Atur delay berdasarkan indeks animasi dan kecepatan invers
+    });
+  };
 
   // Nilai yang akan disediakan oleh SortingAlgorithmProvider
   const value: SortingAlgorithmContextType = {
@@ -95,6 +152,7 @@ export const SortingAlgorithmProvider = ({
     setIsAnimationComplete,
     resetArrayAndAnimation,
     runAnimation,
+    requireReset,
   };
 
   // Mengembalikan provider konteks sortingAlgorithmContext dengan nilai value
